@@ -1,0 +1,57 @@
+<!--index.html-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    <style>
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <input id="expression" type="text" placeholder="Enter expression (e.g., sin(10))">
+    <input id="result" type="text" placeholder="Result" readonly>
+    
+    <script>
+        document.getElementById("expression").addEventListener("input", function() {
+            var expression = this.value;
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "/calculate", true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    document.getElementById("result").value = xhr.responseText;
+                }
+            };
+
+            // Check if the expression contains trigonometric functions
+            var trigonometricFunctions = ["sin", "cos", "tan", "cot"];
+            var containsTrigonometric = false;
+            for (var i = 0; i < trigonometricFunctions.length; i++) {
+                if (expression.includes(trigonometricFunctions[i])) {
+                    containsTrigonometric = true;
+                    break;
+                }
+            }
+
+            // If trigonometric functions are present, adjust the expression
+            if (containsTrigonometric) {
+                xhr.send("operand1=" + encodeURIComponent(expression.substring(4)) +
+                         "&operand2=" +
+                         "&operation=" + encodeURIComponent(expression.substring(0, 3)));
+            } else {
+                // If no trigonometric functions, proceed as before
+                xhr.send("operand1=" + encodeURIComponent(expression.split(/[+\-*\/^√]/)[0]) +
+                         "&operand2=" + encodeURIComponent(expression.split(/[+\-*\/^√]/)[1]) +
+                         "&operation=" + encodeURIComponent(expression.match(/[+\-*\/^√]/)));
+            }
+        });
+    </script>
+</body>
+</html>
